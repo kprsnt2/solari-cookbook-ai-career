@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Pipeline Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent: #3b82f6;
+            --grade-a: #22c55e;
+            --grade-b: #eab308;
+            --grade-c: #ef4444;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            border-bottom: 1px solid #334155;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        h1 { margin: 0; color: #60a5fa; }
+        .subtitle { color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+        .stat-value { font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .stat-label { color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .job-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+        }
+        .job-info h3 { margin: 0 0 0.5rem 0; color: #f8fafc; }
+        .job-company { color: #94a3b8; font-weight: 500; margin-bottom: 1rem; }
+        .job-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .tag {
+            background: #334155;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+        .grade-badge {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            margin-left: 1.5rem;
+        }
+        .grade-A { background: rgba(34, 197, 94, 0.1); color: var(--grade-a); border: 1px solid var(--grade-a); }
+        .grade-B { background: rgba(234, 179, 8, 0.1); color: var(--grade-b); border: 1px solid var(--grade-b); }
+        .grade-C { background: rgba(239, 68, 68, 0.1); color: var(--grade-c); border: 1px solid var(--grade-c); }
+        .apply-btn {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .apply-btn:hover { background: #2563eb; }
+        .gaps-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #334155; }
+        .gap-item { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.25rem; }
+        .gap-bridge { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>AI Career Pipeline Dashboard</h1>
+                <div class="subtitle">Automated via Solari Cloud Browsers & GitHub Actions</div>
+            </div>
+            <div id="last-updated" class="subtitle">Loading...</div>
+        </header>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total">-</div>
+                <div class="stat-label">Total Scraped</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-a" style="color: var(--grade-a)">-</div>
+                <div class="stat-label">Grade A Matches</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-b" style="color: var(--grade-b)">-</div>
+                <div class="stat-label">Grade B Matches</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-avg">-</div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+        </div>
+
+        <h2>Top Job Matches</h2>
+        <div id="jobs-container">
+            <div style="text-align: center; color: #94a3b8; padding: 2rem;">Loading jobs from latest pipeline run...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                // Fetch the latest output from the GitHub Actions pipeline
+                const response = await fetch('latest_jobs.json');
+                if (!response.ok) throw new Error('Data not found');
+                
+                const data = await response.json();
+                
+                document.getElementById('last-updated').textContent = `Last run: ${data.date}`;
+                
+                // Update stats
+                document.getElementById('stat-total').textContent = data.report.summary.total_jobs;
+                document.getElementById('stat-a').textContent = data.report.summary.grade_a_count;
+                document.getElementById('stat-b').textContent = data.report.summary.grade_b_count;
+                document.getElementById('stat-avg').textContent = data.report.summary.average_score.toFixed(1);
+                
+                // Render jobs
+                const container = document.getElementById('jobs-container');
+                container.innerHTML = '';
+                
+                const jobs = data.jobs || [];
+                
+                if (jobs.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #94a3b8;">No jobs found in the latest run.</div>';
+                    return;
+                }
+                
+                jobs.forEach(job => {
+                    const eval = job.evaluation || {};
+                    const grade = eval.grade || 'C';
+                    const gradeClass = grade.startsWith('A') ? 'grade-A' : grade.startsWith('B') ? 'grade-B' : 'grade-C';
+                    
+                    const gapsHTML = (job.skill_gaps && job.skill_gaps.length > 0) 
+                        ? `<div class="gaps-section">
+                             <strong style="font-size:0.85rem">Skill Analysis:</strong>
+                             ${job.skill_gaps.slice(0,2).map(g => `<div class="gap-item">• Missing: ${g.skill} <span class="gap-bridge">→ Bridge: ${g.bridge}</span></div>`).join('')}
+                           </div>`
+                        : '';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'job-card';
+                    card.innerHTML = `
+                        <div class="job-info" style="flex: 1;">
+                            <h3>${job.title}</h3>
+                            <div class="job-company">${job.company} • ${job.location}</div>
+                            <div class="job-tags">
+                                ${(job.tags || []).slice(0,4).map(t => `<span class="tag">${t}</span>`).join('')}
+                                <span class="tag" style="background:#0f172a; border: 1px solid #3b82f6; color:#3b82f6;">Auto-Scraped via Solari</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1rem;">
+                                <strong>Why fit:</strong> ${eval.recommendation || job.why_match}
+                            </div>
+                            <a href="${job.apply_url}" target="_blank" class="apply-btn">View Job / Apply</a>
+                            ${gapsHTML}
+                        </div>
+                        <div>
+                            <div class="grade-badge ${gradeClass}">${grade}</div>
+                            <div style="text-align:center; font-size:0.8rem; color:#94a3b8; margin-top:0.5rem; margin-left:1.5rem;">Score: ${eval.overall_score}/5</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error("Error loading data:", error);
+                document.getElementById('jobs-container').innerHTML = 
+                    '<div style="text-align: center; color: #ef4444; padding: 2rem;">No pipeline data found yet. The GitHub Action needs to run at least once to generate <code>latest_jobs.json</code>.</div>';
+            }
+        }
+        
+        loadData();
+    </script>
+</body>
+</html>
